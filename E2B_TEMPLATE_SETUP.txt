@@ -1,0 +1,46 @@
+E2B Template Publishing Log
+===========================
+
+Template alias: mspace-nextjs-template
+Template ID: nc5y6eeoc52c2qun1dor
+Team ID: 4f145bbd-574d-49c8-b091-3241ea2a6bd4
+Created: 2025-11-23 08:59 UTC
+
+Steps performed:
+
+1. Updated templates/nextjs/e2b.toml
+   - Set team_id to 4f145bbd-574d-49c8-b091-3241ea2a6bd4
+   - Set template_name to mspace-nextjs-template
+
+2. Auth setup (from templates/nextjs directory)
+   set -a && source ../../.env
+   export E2B_ACCESS_TOKEN="$E2B_API_KEY"
+
+3. Built and published the template
+   pnpm dlx @e2b/cli@latest template create mspace-nextjs-template \
+     --dockerfile e2b.Dockerfile \
+     --cmd /compile_page.sh \
+     --ready-cmd "sleep 1"
+
+4. Saved new template_id (nc5y6eeoc52c2qun1dor) back into e2b.toml.
+
+5. Updated src/inngest/functions.ts to call:
+   Sandbox.create("mspace-nextjs-template")
+
+How to recreate:
+----------------
+1. cd templates/nextjs
+2. source ../../.env (to load E2B_API_KEY)
+3. export E2B_ACCESS_TOKEN="$E2B_API_KEY"
+4. pnpm dlx @e2b/cli@latest template create mspace-nextjs-template \
+      --dockerfile e2b.Dockerfile \
+      --cmd /compile_page.sh \
+      --ready-cmd "sleep 1"
+5. Commit the updated e2b.toml and ensure application code uses the same template_name.
+
+Verification:
+-------------
+You can verify the template exists by running:
+pnpm dlx @e2b/cli@latest template list
+and checking for mspace-nextjs-template / nc5y6eeoc52c2qun1dor.
+
