@@ -3,7 +3,9 @@ import { Sandbox } from "@e2b/code-interpreter";
 import { AgentResult, type Message, TextMessage } from "@inngest/agent-kit";
 
 export async function getSandbox(sandboxId: string) {
-  const sandbox = await Sandbox.connect(sandboxId);
+  const sandbox = await Sandbox.connect(sandboxId, {
+    apiKey: process.env.E2B_API_KEY,
+  });
   await sandbox.setTimeout(SANDBOX_TIMEOUT_IN_MS); // half hour
 
   return sandbox;

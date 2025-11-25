@@ -5,7 +5,7 @@ import { prisma } from "@/lib/db";
 export const settingsRouter = createTRPCRouter({
   get: protectedProcedure.query(async ({ ctx }) => {
     const settings = await prisma.userSettings.findUnique({
-      where: { userId: ctx.auth.userId },
+      where: { userId: ctx.user.id },
     });
 
     return settings;
@@ -23,7 +23,7 @@ export const settingsRouter = createTRPCRouter({
     )
     .mutation(async ({ ctx, input }) => {
       const settings = await prisma.userSettings.upsert({
-        where: { userId: ctx.auth.userId! },
+        where: { userId: ctx.user.id },
         update: {
           modelProvider: input.modelProvider,
           openrouterApiKey: input.openrouterApiKey,
@@ -32,7 +32,7 @@ export const settingsRouter = createTRPCRouter({
           localModelName: input.localModelName,
         },
         create: {
-          userId: ctx.auth.userId!,
+          userId: ctx.user.id,
           modelProvider: input.modelProvider,
           openrouterApiKey: input.openrouterApiKey,
           openrouterModel: input.openrouterModel || "z-ai/glm-4.6",

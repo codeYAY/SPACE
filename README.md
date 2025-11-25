@@ -1,6 +1,10 @@
-# Rushed
+# mSpace
 
-**Rushed** is an AI-powered web application builder that transforms natural language into functional code. Designed for creators and teams who want to build modern web apps fast—without the friction.
+
+<!-- npx inngest-cli@latest dev -u http://localhost:3000/api/inngest --verbose --log-level debug -->
+
+
+**mSpace** is an AI-powered web application builder that transforms natural language into functional code. Designed for creators and teams who want to build modern web apps fast—without the friction.
 
 ## 🛠️ Built For
 
@@ -11,7 +15,7 @@
 
 ## ⚙️ AI Model Configuration
 
-Rushed supports two AI model providers:
+mSpace supports two AI model providers:
 
 ### OpenRouter (Recommended)
 
@@ -40,3 +44,8 @@ Run your own AI models locally:
 5. Start the development server: `pnpm dev`
 6. Configure your AI model in the Settings page at `/settings`
 
+START INNGEST DEV SERVER
+
+```bash
+npx inngest-cli@latest dev -u http://localhost:3000/api/inngest
+```

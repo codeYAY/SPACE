@@ -3,6 +3,7 @@ import { createTRPCRouter, protectedProcedure } from "@/trpc/init";
 import { z } from "zod";
 import { generateSlug } from "random-word-slugs";
 import { TRPCError } from "@trpc/server";
+import { inngest } from "@/inngest/client";
 
 export const projectsRouter = createTRPCRouter({
   getOne: protectedProcedure
@@ -11,7 +12,7 @@ export const projectsRouter = createTRPCRouter({
       const existingProject = await prisma.project.findUnique({
         where: {
           id: input.id,
-          userId: ctx.auth.userId,
+          userId: ctx.user.id,
         },
       });
 
@@ -26,7 +27,7 @@ export const projectsRouter = createTRPCRouter({
   getMany: protectedProcedure.query(async ({ ctx }) => {
     const projects = await prisma.project.findMany({
       where: {
-        userId: ctx.auth.userId,
+        userId: ctx.user.id,
       },
       orderBy: {
         updatedAt: "desc",
@@ -41,12 +42,22 @@ export const projectsRouter = createTRPCRouter({
           .string()
           .min(1, { message: "Message is required" })
           .max(10000, { message: "Message is too long" }),
+        source: z
+          .object({
+            id: z.string(),
+            name: z.string(),
+            type: z.enum(["data-space", "connection"]),
+            path: z.string(),
+            description: z.string().optional(),
+            metadata: z.record(z.any()).optional(),
+          })
+          .optional(),
       })
     )
     .mutation(async ({ input, ctx }) => {
       const createdProject = await prisma.project.create({
         data: {
-          userId: ctx.auth.userId,
+          userId: ctx.user.id,
           name: generateSlug(2, {
             format: "kebab",
           }),
@@ -57,6 +68,17 @@ export const projectsRouter = createTRPCRouter({
               type: "RESULT",
             },
           },
+        },
+      });
+
+      await inngest.send({
+        name: "rushed-agent/run",
+        data: {
+          projectId: createdProject.id,
+          userId: ctx.user.id,
+          userToken: ctx.token || undefined,
+          value: input.value,
+          source: input.source,
         },
       });
 

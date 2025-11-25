@@ -8,30 +8,44 @@ import { z } from "zod";
 import TextareaAutosize from "react-textarea-autosize";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/ui/button";
-import { ArrowUpIcon, Loader2Icon } from "lucide-react";
+import { ArrowUpIcon, Loader2Icon, DatabaseIcon } from "lucide-react";
 import { useTRPC } from "@/trpc/client";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { PROJECT_TEMPLATES } from "@/constants";
-import { useClerk } from "@clerk/nextjs";
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectLabel,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Badge } from "@/components/ui/badge";
 
 const formSchema = z.object({
   value: z
     .string()
     .min(1, { message: "Value is required" })
     .max(10000, { message: "Value is too long" }),
+  sourceId: z.string().min(1, { message: "Select a data source" }),
 });
 
 export const ProjectForm = () => {
   const router = useRouter();
   const trpc = useTRPC();
-  const clerk = useClerk();
   const queryClient = useQueryClient();
+  const { data: sources, isLoading: isLoadingSources } = useQuery(
+    trpc.mhive.getSources.queryOptions()
+  );
+
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       value: "",
+      sourceId: "",
     },
   });
 
@@ -46,25 +60,22 @@ export const ProjectForm = () => {
         toast.error(error.message);
 
         if (error.data?.code === "UNAUTHORIZED") {
-          if (!clerk.user) {
-            router.push("/sign-in");
-          } else {
-            //sign out or redirect
-            router.push("/sign-in");
-          }
+          router.push("/sign-in");
         }
-
 
         if (error.data?.code === "TOO_MANY_REQUESTS") {
           router.push("/pricing");
         }
       },
-    }),
+    })
   );
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
+    const selectedSource = sources?.find((s) => s.id === values.sourceId);
+
     await createProject.mutateAsync({
       value: values.value,
+      source: selectedSource,
     });
   };
 
@@ -78,7 +89,8 @@ export const ProjectForm = () => {
 
   const [isFocused, setIsFocused] = useState(false);
   const isPending = createProject.isPending;
-  const isButtonDisabled = isPending || !form.formState.isValid;
+  const sourceId = form.watch("sourceId");
+  const isButtonDisabled = isPending || !form.formState.isValid || !sourceId;
 
   return (
     <Form {...form}>
@@ -87,9 +99,65 @@ export const ProjectForm = () => {
           onSubmit={form.handleSubmit(onSubmit)}
           className={cn(
             "relative border p-4 pt-1 rounded-xl bg-sidebar dark:bg-sidebar transition-all",
-            isFocused && "shadow-sm",
+            isFocused && "shadow-sm"
           )}
         >
+          <div className="border-b pb-3 mb-3 flex flex-col gap-1">
+            <div className="flex items-center justify-between text-xs text-muted-foreground">
+              <span>Select Data Source</span>
+              {sourceId && (
+                <Badge variant="secondary" className="text-[10px]">
+                  {sources?.find((s) => s.id === sourceId)?.type ===
+                  "data-space"
+                    ? "Data Space"
+                    : "Connection"}
+                </Badge>
+              )}
+            </div>
+            <FormField
+              control={form.control}
+              name="sourceId"
+              render={({ field }) => (
+                <Select onValueChange={field.onChange} value={field.value}>
+                  <SelectTrigger className="border-none shadow-none bg-transparent px-0 h-9 focus:ring-0 text-foreground">
+                    <div className="flex items-center gap-2">
+                      <DatabaseIcon className="size-4" />
+                      <SelectValue
+                        placeholder={
+                          isLoadingSources
+                            ? "Loading sources..."
+                            : "Choose a Data Space or Connection"
+                        }
+                      />
+                    </div>
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectGroup>
+                      <SelectLabel>Data Spaces</SelectLabel>
+                      {sources
+                        ?.filter((source) => source.type === "data-space")
+                        .map((source) => (
+                          <SelectItem key={source.id} value={source.id}>
+                            <div className="flex flex-col">
+                              <span className="flex items-center gap-2 text-sm">
+                                <DatabaseIcon className="size-4 text-blue-500" />
+                                {source.name}
+                              </span>
+                            </div>
+                          </SelectItem>
+                        ))}
+                    </SelectGroup>
+                    {sources?.length === 0 && (
+                      <div className="p-3 text-xs text-muted-foreground text-center">
+                        No sources found
+                      </div>
+                    )}
+                  </SelectContent>
+                </Select>
+              )}
+            />
+          </div>
+
           <FormField
             control={form.control}
             name="value"
@@ -125,7 +193,7 @@ export const ProjectForm = () => {
             <Button
               className={cn(
                 "size-8 rounded-full",
-                isButtonDisabled && "bg-muted-foreground border",
+                isButtonDisabled && "bg-muted-foreground border"
               )}
               disabled={isButtonDisabled}
             >

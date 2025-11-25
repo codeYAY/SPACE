@@ -24,10 +24,22 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { useMutation, useQuery } from "@tanstack/react-query";
+import { createClient } from "@/lib/supabase/client";
+import AvatarUpload from "@/components/avatar-upload";
+import { User } from "@supabase/supabase-js";
 
 export default function SettingsPage() {
   const router = useRouter();
   const trpc = useTRPC();
+  const supabase = createClient();
+
+  // Profile state
+  const [user, setUser] = useState<User | null>(null);
+  const [fullName, setFullName] = useState("");
+  const [avatarUrl, setAvatarUrl] = useState("");
+  const [updatingProfile, setUpdatingProfile] = useState(false);
+
+  // AI Settings state
   const [modelProvider, setModelProvider] = useState<"openrouter" | "local">(
     "openrouter"
   );
@@ -54,6 +66,21 @@ export default function SettingsPage() {
   );
 
   useEffect(() => {
+    const getUser = async () => {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      setUser(user);
+      if (user) {
+        setFullName(user.user_metadata.full_name || "");
+        setAvatarUrl(user.user_metadata.avatar_url || "");
+      }
+    };
+    getUser();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
     if (settings) {
       setModelProvider(settings.modelProvider as "openrouter" | "local");
       setOpenrouterApiKey(settings.openrouterApiKey || "");
@@ -64,6 +91,24 @@ export default function SettingsPage() {
       setLocalModelName(settings.localModelName || "");
     }
   }, [settings]);
+
+  const handleUpdateProfile = async () => {
+    setUpdatingProfile(true);
+    const { error } = await supabase.auth.updateUser({
+      data: {
+        full_name: fullName,
+        avatar_url: avatarUrl,
+      },
+    });
+
+    if (error) {
+      toast.error(error.message);
+    } else {
+      toast.success("Profile updated successfully");
+      router.refresh();
+    }
+    setUpdatingProfile(false);
+  };
 
   const handleSave = () => {
     upsertMutation.mutate({
@@ -86,13 +131,61 @@ export default function SettingsPage() {
   }
 
   return (
-    <div className="max-w-4xl mx-auto w-full py-8 space-y-6">
+    <div className="w-full py-8 space-y-6">
       <div>
         <h1 className="text-3xl font-bold">Settings</h1>
         <p className="text-muted-foreground mt-2">
-          Configure your AI model provider and preferences
+          Configure your account and AI preferences
         </p>
       </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Account Settings</CardTitle>
+          <CardDescription>Update your profile information</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          <div className="flex flex-col gap-4">
+            <Label>Profile Picture</Label>
+            <AvatarUpload
+              uid={user?.id || null}
+              url={avatarUrl}
+              onUpload={(url) => setAvatarUrl(url)}
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="fullName">Full Name</Label>
+            <Input
+              id="fullName"
+              value={fullName}
+              onChange={(e) => setFullName(e.target.value)}
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="avatarUrl">Avatar URL (Optional)</Label>
+            <Input
+              id="avatarUrl"
+              value={avatarUrl}
+              onChange={(e) => setAvatarUrl(e.target.value)}
+              placeholder="https://example.com/avatar.png"
+            />
+            <p className="text-xs text-muted-foreground">
+              You can also manually enter a URL if you prefer not to upload.
+            </p>
+          </div>
+
+          <div className="flex justify-end">
+            <Button onClick={handleUpdateProfile} disabled={updatingProfile}>
+              {updatingProfile && (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              )}
+              Update Profile
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
 
       <Card>
         <CardHeader>
@@ -217,44 +310,6 @@ export default function SettingsPage() {
               )}
               Save Settings
             </Button>
-          </div>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>How to Set Up</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4 text-sm">
-          <div>
-            <h3 className="font-semibold mb-2">OpenRouter (Recommended)</h3>
-            <ol className="list-decimal list-inside space-y-1 text-muted-foreground">
-              <li>
-                Sign up at{" "}
-                <a
-                  href="https://openrouter.ai"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-blue-600 dark:text-blue-400 hover:underline"
-                >
-                  OpenRouter.ai
-                </a>
-              </li>
-              <li>Generate an API key from your dashboard</li>
-              <li>Paste the API key above and select your preferred model</li>
-            </ol>
-          </div>
-
-          <div>
-            <h3 className="font-semibold mb-2">Local Model</h3>
-            <ol className="list-decimal list-inside space-y-1 text-muted-foreground">
-              <li>
-                Set up a local model server (LM Studio, Ollama, or similar)
-              </li>
-              <li>Ensure the server is running and accessible</li>
-              <li>Enter the endpoint URL (usually http://localhost:1234/v1)</li>
-              <li>Specify the model name as configured in your local setup</li>
-            </ol>
           </div>
         </CardContent>
       </Card>

@@ -2,22 +2,41 @@
 
 import { Button } from "@/components/ui/button";
 import { useTRPC } from "@/trpc/client";
-import { useUser } from "@clerk/nextjs";
 import { useQuery } from "@tanstack/react-query";
 import { formatDistanceToNow } from "date-fns";
 import Image from "next/image";
 import Link from "next/link";
+import { createClient } from "@/lib/supabase/client";
+import { User } from "@supabase/supabase-js";
+import { useEffect, useState } from "react";
 
 export const ProjectsList = () => {
   const trpc = useTRPC();
-  const { user } = useUser();
+  const [user, setUser] = useState<User | null>(null);
+  const supabase = createClient();
+
+  useEffect(() => {
+    const getUser = async () => {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      setUser(user);
+    };
+    getUser();
+  }, [supabase]);
+
   const { data: projects } = useQuery(trpc.projects.getMany.queryOptions());
 
   if (!user) return null;
 
+  const firstName =
+    user.user_metadata.full_name?.split(" ")[0] ||
+    user.email?.split("@")[0] ||
+    "User";
+
   return (
     <div className="w-full bg-white dark:bg-sidebar rounded-xl p-8 border flex flex-col gap-y-6 sm:gap-y-4">
-      <h2 className="text-4xl font-semibold">{user?.firstName}&apos;s Spaces</h2>
+      <h2 className="text-4xl font-semibold">{firstName}&apos;s Spaces</h2>
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
         {projects?.length === 0 && (
           <div className="col-span-full text-center">

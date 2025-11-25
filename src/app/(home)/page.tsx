@@ -18,20 +18,17 @@ export default function Page() {
         }}
       />
 
-      <div className="relative z-10 flex flex-col max-w-5xl mx-auto w-full">
+      <div className="relative z-10 flex flex-col w-full">
         <section className="space-y-6 py-[16vh] 2xl:py-48">
           <div className="flex flex-col items-center">
             <Image
               src="/logo.png"
-              alt="Rushed"
+              alt="mSpace"
               width={90}
               height={90}
               className="hidden md:block"
             />
           </div>
-          <h1 className="text-2xl md:text-5xl font-bold text-center">
-            mSpace: Explore, Create, and Discover.
-          </h1>
           <div className="max-w-3xl mx-auto w-full">
             <ProjectForm />
           </div>

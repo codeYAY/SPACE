@@ -15,13 +15,13 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 import Image from "next/image";
-import { 
-  ChevronDownIcon, 
-  ArrowLeftIcon, 
+import {
+  ChevronDownIcon,
+  ArrowLeftIcon,
   SunIcon,
   MoonIcon,
   MonitorIcon,
-  SettingsIcon 
+  SettingsIcon,
 } from "lucide-react";
 import Link from "next/link";
 import { useTheme } from "next-themes";
@@ -33,16 +33,16 @@ interface Props {
 export const ProjectHeader = ({ projectId }: Props) => {
   const trpc = useTRPC();
   const { data: project } = useSuspenseQuery(
-    trpc.projects.getOne.queryOptions({ id: projectId }),
+    trpc.projects.getOne.queryOptions({ id: projectId })
   );
 
   const { setTheme, theme } = useTheme();
 
   const getThemeIcon = (themeValue: string) => {
     switch (themeValue) {
-      case 'light':
+      case "light":
         return <SunIcon className="size-4" />;
-      case 'dark':
+      case "dark":
         return <MoonIcon className="size-4" />;
       default:
         return <MonitorIcon className="size-4" />;
@@ -51,12 +51,12 @@ export const ProjectHeader = ({ projectId }: Props) => {
 
   const getCurrentThemeLabel = () => {
     switch (theme) {
-      case 'light':
-        return 'Light';
-      case 'dark':
-        return 'Dark';
+      case "light":
+        return "Light";
+      case "dark":
+        return "Dark";
       default:
-        return 'System';
+        return "System";
     }
   };
 
@@ -68,12 +68,12 @@ export const ProjectHeader = ({ projectId }: Props) => {
             variant="ghost"
             className="gap-2 h-10 px-3 hover:bg-accent hover:text-accent-foreground data-[state=open]:bg-accent data-[state=open]:text-accent-foreground transition-colors"
           >
-            <Image 
-              src="/logo.svg" 
-              alt="Rushed" 
-              width={24} 
+            <Image
+              src="/logo.svg"
+              alt="mSpace"
+              width={24}
               height={24}
-              className="shrink-0" 
+              className="shrink-0"
             />
             <span className="font-medium text-foreground truncate max-w-[200px]">
               {project.name}
@@ -81,9 +81,9 @@ export const ProjectHeader = ({ projectId }: Props) => {
             <ChevronDownIcon className="size-4 text-muted-foreground shrink-0" />
           </Button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent 
-          className="w-56" 
-          side="bottom" 
+        <DropdownMenuContent
+          className="w-56"
+          side="bottom"
           align="start"
           sideOffset={4}
         >
@@ -91,25 +91,22 @@ export const ProjectHeader = ({ projectId }: Props) => {
             <div className="font-medium text-foreground truncate">
               {project.name}
             </div>
-            <div className="text-xs">
-              Artifact Settings
-            </div>
+            <div className="text-xs">Artifact Settings</div>
           </div>
           <DropdownMenuSeparator />
-          
-          
+
           <DropdownMenuItem asChild className="cursor-pointer">
             <Link href="/" className="flex items-center gap-2">
               <ArrowLeftIcon className="size-4 text-muted-foreground" />
               <span>Back to Home</span>
             </Link>
           </DropdownMenuItem>
-          
+
           <DropdownMenuSeparator />
-          
+
           <DropdownMenuSub>
             <DropdownMenuSubTrigger className="gap-2 cursor-pointer">
-              {getThemeIcon(theme || 'system')}
+              {getThemeIcon(theme || "system")}
               <span>Theme</span>
               <span className="ml-auto text-xs text-muted-foreground">
                 {getCurrentThemeLabel()}
@@ -118,22 +115,22 @@ export const ProjectHeader = ({ projectId }: Props) => {
             <DropdownMenuPortal>
               <DropdownMenuSubContent className="w-40">
                 <DropdownMenuRadioGroup value={theme} onValueChange={setTheme}>
-                  <DropdownMenuRadioItem 
-                    value="light" 
+                  <DropdownMenuRadioItem
+                    value="light"
                     className="gap-2 cursor-pointer"
                   >
                     <SunIcon className="size-4" />
                     <span>Light</span>
                   </DropdownMenuRadioItem>
-                  <DropdownMenuRadioItem 
-                    value="dark" 
+                  <DropdownMenuRadioItem
+                    value="dark"
                     className="gap-2 cursor-pointer"
                   >
                     <MoonIcon className="size-4" />
                     <span>Dark</span>
                   </DropdownMenuRadioItem>
-                  <DropdownMenuRadioItem 
-                    value="system" 
+                  <DropdownMenuRadioItem
+                    value="system"
                     className="gap-2 cursor-pointer"
                   >
                     <MonitorIcon className="size-4" />
@@ -143,7 +140,7 @@ export const ProjectHeader = ({ projectId }: Props) => {
               </DropdownMenuSubContent>
             </DropdownMenuPortal>
           </DropdownMenuSub>
-          
+
           <DropdownMenuSeparator />
           <DropdownMenuItem className="gap-2 cursor-pointer">
             <SettingsIcon className="size-4 text-muted-foreground" />

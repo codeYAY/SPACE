@@ -7,11 +7,10 @@ function ping_server() {
 	response=$(curl -s -o /dev/null -w "%{http_code}" "http://localhost:3000")
 	while [[ ${response} -ne 200 ]]; do
 	  let counter++
-	  if  (( counter % 20 == 0 )); then
+	  if  (( counter % 10 == 0 )); then
         echo "Waiting for server to start..."
-        sleep 0.1
       fi
-
+      sleep 0.5
 	  response=$(curl -s -o /dev/null -w "%{http_code}" "http://localhost:3000")
 	done
 }

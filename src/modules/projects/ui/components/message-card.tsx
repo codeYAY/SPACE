@@ -35,7 +35,7 @@ const FragmentCard = ({
       className={cn(
         "flex items-start text-start gap-4 border rounded-lg bg-muted w-full max-w-md p-4 hover:bg-secondary transition-colors",
         isActiveFragment &&
-          "bg-primary text-primary-foreground border-primary hover:bg-primary",
+          "bg-primary text-primary-foreground border-primary hover:bg-primary"
       )}
       onClick={() => onFragmentClick(fragment)}
     >
@@ -74,18 +74,18 @@ const AssistantMessage = ({
     <div
       className={cn(
         "flex flex-col group px-2 pb-4",
-        type === "ERROR" && "text-red-700 dark:text-red-500",
+        type === "ERROR" && "text-red-700 dark:text-red-500"
       )}
     >
       <div className="flex items-center gap-2 pl-2 mb-2">
         <Image
           src="/logo.svg"
-          alt="Rushed"
+          alt="mSpace"
           width={30}
           height={30}
           className="shrink-0"
         />
-        <span className="text-sm font-medium">Rushed</span>
+        <span className="text-sm font-medium">mSpace</span>
         <span className="text-xs text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100">
           {format(createdAt, "HH:mm 'on' MMM dd, yyyy")}
         </span>
